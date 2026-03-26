@@ -4,26 +4,19 @@ import Image from "next/image";
 import type { IMessage } from "@/app/lib/types";
 import { cn } from "@/app/lib/utils";
 
-const Message = ({ user, text, isOwnMessage, showSender, createdAt }: IMessage) => {
+const Message = ({
+  user,
+  text,
+  isOwnMessage,
+  showSender,
+  createdAt,
+}: IMessage) => {
   return (
     <div
       className={cn("flex mt-2 justify-start gap-2", {
         "justify-end": isOwnMessage,
       })}
     >
-      {showSender && (
-        <div className={cn("flex aspect-square self-start", {
-          "order-1": isOwnMessage,
-        })}>
-          <Image
-            className="rounded-[50%] aspect-square"
-            src="./userAvatar.svg"
-            width={36}
-            height={36}
-            alt="Аватар пользователя"
-          />
-        </div>
-      )}
       <div
         className={cn("max-w-[75%] w-fit flex flex-col gap-1", {
           "items-end": isOwnMessage,
@@ -35,7 +28,9 @@ const Message = ({ user, text, isOwnMessage, showSender, createdAt }: IMessage) 
               "justify-end flex-row-reverse": isOwnMessage,
             })}
           >
-            <span className={"font-medium"}>{`${user.first_name} ${user.last_name}`}</span>
+            <span
+              className={"font-medium"}
+            >{`${user.first_name} ${user.last_name}`}</span>
             <span className="text-sm">
               {new Date(createdAt).toLocaleTimeString("ru-RU", {
                 hour: "2-digit",
@@ -55,6 +50,21 @@ const Message = ({ user, text, isOwnMessage, showSender, createdAt }: IMessage) 
           {text}
         </div>
       </div>
+      {showSender && (
+        <div
+          className={cn("flex aspect-square self-start", {
+            "order-1": isOwnMessage,
+          })}
+        >
+          <Image
+            className="rounded-[50%] aspect-square"
+            src="./userAvatar.svg"
+            width={36}
+            height={36}
+            alt="Аватар пользователя"
+          />
+        </div>
+      )}
     </div>
   );
 };

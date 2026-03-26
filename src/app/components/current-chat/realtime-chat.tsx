@@ -62,7 +62,7 @@ export const RealtimeChat = ({
   useEffect(() => {
     // Scroll to bottom whenever messages change
     scrollToBottom();
-  }, [allMessages, scrollToBottom]);
+  }, [scrollToBottom]);
 
   const handleSendMessage = useCallback(() => {
     if (!chatInputValue.trim() || !isConnected) return;
@@ -72,7 +72,7 @@ export const RealtimeChat = ({
   }, [chatInputValue, isConnected, sendMessage]);
 
   return (
-    <section className="bg-white text-(--text-primary-color) flex flex-col grow justify-between h-full">
+    <section className="bg-white text-(--text-primary-color) flex flex-col grow justify-between h-full min-h-0">
       <ChatHeader username={username} setUsername={setUsername} />
       <ChatMessages
         ref={containerRef}

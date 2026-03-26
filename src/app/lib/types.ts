@@ -68,3 +68,12 @@ export interface IUseRealtimeChatProps {
   roomName: string;
   username: string;
 }
+
+//Интерфейс аутентификации
+
+export interface IAuthFormData {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
