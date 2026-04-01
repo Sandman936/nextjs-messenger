@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PT_Sans } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "./contexts/auth-context";
 
 const ptSans = PT_Sans({
 	variable: "--font-pt-sans",
@@ -22,7 +23,9 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="ru">
-			<body className={`${ptSans.variable} antialiased grid place-items-center`}>{children}</body>
+			<body className={`${ptSans.variable} antialiased grid place-items-center`}>
+				<AuthProvider>{children}</AuthProvider>
+			</body>
 		</html>
 	);
 }

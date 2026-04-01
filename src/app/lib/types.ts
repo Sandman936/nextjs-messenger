@@ -1,7 +1,5 @@
 //Интерфейсы чата
 
-import type { Dispatch, SetStateAction } from "react";
-
 export interface IMessage {
   user: IUserInfo;
   text: string;
@@ -26,6 +24,7 @@ interface ILastMessage {
 }
 
 interface IUserInfo {
+  id: string;
   first_name: string;
   last_name: string | null;
   avatar_url: string | null;
@@ -44,36 +43,29 @@ export interface IContact {
 
 export interface IUserProfile {
   id: string;
-  email: string;
   first_name: string;
   last_name: string | null;
   avatar_url: string | null;
-  username: string;
-  bio: string;
-  created_at: Date;
-  updated_at: Date;
+  hasSetName: boolean;
+  created_at: string;
+  updated_at: string | undefined;
 }
 
 //Интерфейс комнаты
 
 export interface IRealtimeChatProps {
   roomName: string;
-  username: string;
-  setUsername: Dispatch<SetStateAction<string>>;
   onMessage?: (messages: IMessage[]) => void;
   messages?: IMessage[];
 }
 
 export interface IUseRealtimeChatProps {
   roomName: string;
-  username: string;
 }
 
 //Интерфейс аутентификации
 
 export interface IAuthFormData {
-  email: string;
-  password: string;
-  firstName?: string;
+  firstName: string;
   lastName?: string;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/app/contexts/auth-context";
 import { useChatScroll } from "@/app/lib/hooks/use-chat-scroll";
 import { useRealtimeChat } from "@/app/lib/hooks/use-realtime-chat";
 import type { IRealtimeChatProps } from "@/app/lib/types";
@@ -19,8 +20,6 @@ import ChatHeader from "./header/chat-header";
 
 export const RealtimeChat = ({
   roomName,
-  username,
-  setUsername,
   onMessage,
   messages: initialMessages = [],
 }: IRealtimeChatProps) => {
@@ -32,7 +31,6 @@ export const RealtimeChat = ({
     isConnected,
   } = useRealtimeChat({
     roomName,
-    username,
   });
 
   const [chatInputValue, setChatInputValue] = useState<string>("");
@@ -59,11 +57,6 @@ export const RealtimeChat = ({
     }
   }, [allMessages, onMessage]);
 
-  useEffect(() => {
-    // Scroll to bottom whenever messages change
-    scrollToBottom();
-  }, [scrollToBottom]);
-
   const handleSendMessage = useCallback(() => {
     if (!chatInputValue.trim() || !isConnected) return;
 
@@ -73,12 +66,8 @@ export const RealtimeChat = ({
 
   return (
     <section className="bg-white text-(--text-primary-color) flex flex-col grow justify-between h-full min-h-0">
-      <ChatHeader username={username} setUsername={setUsername} />
-      <ChatMessages
-        ref={containerRef}
-        messages={allMessages}
-        username={username}
-      />
+      <ChatHeader />
+      <ChatMessages ref={containerRef} messages={allMessages} />
       <ChatInput
         value={chatInputValue}
         setValue={setChatInputValue}

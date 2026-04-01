@@ -1,18 +1,18 @@
 "use client";
 
 import React from "react";
+import { useAuth } from "@/app/contexts/auth-context";
 import type { IMessage } from "@/app/lib/types";
 import { showUsername } from "@/app/lib/utils";
 import Message from "./message";
 
 interface IProps {
   messages: IMessage[];
-  username: string;
 }
 
 const ChatMessages = React.forwardRef<HTMLDivElement, IProps>(
-  ({ messages, username }, ref) => {
-
+  ({ messages }, ref) => {
+    const { user: currentUser } = useAuth();
 
     return (
       <div className="flex flex-col h-full w-full bg-background min-h-0 flex-1">
@@ -35,7 +35,7 @@ const ChatMessages = React.forwardRef<HTMLDivElement, IProps>(
                   <Message
                     user={message.user}
                     text={message.text}
-                    isOwnMessage={message.user.first_name === username}
+                    isOwnMessage={message.user.id === currentUser?.id}
                     showSender={showUsername(message, prevMessage)}
                     id={message.id}
                     createdAt={message.createdAt}
