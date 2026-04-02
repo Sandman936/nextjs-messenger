@@ -21,7 +21,7 @@ const ChatHeader = () => {
           />
         </div>
         <div className="flex flex-col">
-          <h2 className="text-lg font-semibold">{!isLoading ? `${user_info?.first_name} ${user_info?.last_name}`: 'Загрузка...'}</h2>
+          <h2 className="text-lg font-semibold">{!isLoading ? `${user_info?.first_name} ${user_info?.last_name ?? ''}`: 'Загрузка...'}</h2>
           <Status />
         </div>
       </div>

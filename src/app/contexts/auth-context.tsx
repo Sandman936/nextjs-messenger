@@ -2,7 +2,9 @@
 
 import {
   createContext,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
   useContext,
   useEffect,
   useState,
@@ -12,9 +14,8 @@ import type { IUserProfile } from "../lib/types";
 
 interface IAuthContext {
   user: IUserProfile | null;
+  setUser: Dispatch<SetStateAction<IUserProfile | null>>;
   isLoading: boolean;
-  refreshUser: () => Promise<void>;
-  signOut: () => Promise<void>;
 }
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
@@ -57,10 +58,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const refreshUser = async () => {
-    await fetchUser();
-  };
-
   useEffect(() => {
     fetchUser();
 
@@ -81,13 +78,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   //TODO: Сделать сброс профиля при выходе из профиля;
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
+  // const signOut = async () => {
+  //   await supabase.auth.signOut();
+  //   setUser(null);
+  // };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, refreshUser, signOut }}>
+    <AuthContext.Provider value={{ user, setUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
