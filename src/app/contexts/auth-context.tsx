@@ -10,78 +10,80 @@ import {
   useState,
 } from "react";
 import { createClient } from "../lib/supabase/client";
-import type { IUserProfile } from "../lib/types";
+import type { IUserInfo } from "../lib/types";
 
 interface IAuthContext {
-  user: IUserProfile | null;
-  setUser: Dispatch<SetStateAction<IUserProfile | null>>;
+  user: IUserInfo | null;
+  setUser: Dispatch<SetStateAction<IUserInfo | null>>;
   isLoading: boolean;
 }
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<IUserProfile | null>(null);
+  const [user, setUser] = useState<IUserInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const supabase = createClient();
 
-  const fetchUser = async () => {
-    setIsLoading(true);
+  const fetchUser = async (userId: string) => {
     try {
       const {
-        data: { user },
+        data: profile,
         error,
-      } = await supabase.auth.getUser();
+      } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
-      if (error || !user) {
+      if (error) {
+        console.error("Error loading user:", error);
         setUser(null);
         return;
       }
 
-      const userProfile: IUserProfile = {
-        id: user.id,
-        first_name: user.user_metadata?.first_name,
-        last_name: user.user_metadata?.last_name,
-        avatar_url: user.user_metadata?.avatar_url,
-        hasSetName: user.user_metadata?.has_set_name || false,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
+      const userProfile: IUserInfo = {
+        id: profile.id,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        avatar_url: profile.avatar_url,
       };
 
       setUser(userProfile);
     } catch (error) {
-      console.error("Ошибка загрузки пользователя:", error);
+      console.error("Error loading user:", error);
       setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+    };
   };
 
-  useEffect(() => {
-    fetchUser();
+  useEffect(() => { 
+    const checkSession = async () => {
+      setIsLoading(true);
+
+      const { data: {session}} = await supabase.auth.getSession();
+
+      if (session?.user) {
+        await fetchUser(session.user.id);
+      }
+
+      setIsLoading(false);
+    }
+  
+    checkSession();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        await fetchUser();
-      } else if (event === "SIGNED_OUT") {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await fetchUser(session.user.id);
+      } else {
         setUser(null);
       }
+
+      setIsLoading(false);
     });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
-
-  //TODO: Сделать сброс профиля при выходе из профиля;
-
-  // const signOut = async () => {
-  //   await supabase.auth.signOut();
-  //   setUser(null);
-  // };
 
   return (
     <AuthContext.Provider value={{ user, setUser, isLoading }}>

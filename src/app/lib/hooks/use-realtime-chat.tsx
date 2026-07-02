@@ -1,73 +1,95 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/app/contexts/auth-context";
+import { getChatMessages } from "../actions/chats";
 import { createClient } from "../supabase/client";
-import type { IMessage, IUseRealtimeChatProps } from "../types";
+import type { IMessage } from "../types";
 
-const EVENT_MESSAGE_TYPE = "message";
-
-export function useRealtimeChat({ roomName }: IUseRealtimeChatProps) {
+export const useRealtimeChat = (chatId: string) => {
   const supabase = createClient();
   const [messages, setMessages] = useState<IMessage[]>([]);
-  const [channel, setChannel] = useState<ReturnType<
-    typeof supabase.channel
-  > | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  const [isMessagesLoading, setIsMessagesLoading] = useState(true);
+  const [loadingMessagesError, setLoadingMessagesError] = useState<string>("");
+
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const { user: currentUser } = useAuth();
 
-  useEffect(() => {
-    const newChannel = supabase.channel(roomName);
+  const loadMessages = useCallback(async () => {
+    if (!chatId) return;
 
-    newChannel
-      .on("broadcast", { event: EVENT_MESSAGE_TYPE }, (payload) => {
-        setMessages((current) => [...current, payload.payload as IMessage]);
-      })
-      .subscribe(async (status) => {
+    try {
+      setIsMessagesLoading(true);
+      setLoadingMessagesError("");
+
+      const loadedMessages = await getChatMessages(chatId);
+
+      setMessages(loadedMessages);
+    } catch (err) {
+      setLoadingMessagesError("Не удалось загрузить сообщения");
+      console.error(err);
+    } finally {
+      setIsMessagesLoading(false);
+    }
+  }, [chatId]);
+
+  useEffect(() => {
+    if (!chatId || !currentUser) return;
+
+    console.log(`🔗 Подключаемся к чату: ${chatId}`);
+
+    const newChannel = supabase
+      .channel(`chat:${chatId}:changes`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `chat_id=eq.${chatId}`,
+        },
+        (payload) => {
+          console.log("📨 Новое сообщение (postgres_changes):", payload);
+
+          const newMessage = payload.new as IMessage;
+          setMessages((current) => {
+            const exists = current.some((msg) => msg.id === newMessage.id);
+            if (exists) return current;
+            return [...current, newMessage];
+          });
+        },
+      )
+      .subscribe((status) => {
+        console.log(`📡 Статус канала chat:${chatId}:changes:`, status);
+
         if (status === "SUBSCRIBED") {
+          console.log("✅ Подписка активна");
           setIsConnected(true);
+          setLoadingMessagesError("");
+          loadMessages();
+        } else if (status === "CHANNEL_ERROR") {
+          console.error("❌ Ошибка канала");
+          setIsConnected(false);
+          setLoadingMessagesError("Ошибка подключения к чату");
         } else {
+          console.log(`📡 Другой статус: ${status}`);
           setIsConnected(false);
         }
       });
 
-    setChannel(newChannel);
+    channelRef.current = newChannel;
 
     return () => {
-      supabase.removeChannel(newChannel);
+      console.log(`🔌 Отключаемся от чата: ${chatId}`);
+      if (channelRef.current) {
+        supabase.removeChannel(newChannel);
+        channelRef.current = null;
+      }
+      setIsConnected(false);
     };
-  }, [roomName, supabase]);
+  }, [chatId, currentUser, loadMessages, supabase]);
 
-  const sendMessage = useCallback(
-    async (text: string) => {
-      if (!channel || !isConnected) return;
-
-      const message: IMessage = {
-        user: {
-          id: currentUser?.id ?? '',
-          first_name: currentUser?.first_name ?? 'Неизвестный пользователь',
-          last_name: currentUser?.last_name ?? '',
-          avatar_url: currentUser?.avatar_url ?? null,
-        },
-        text,
-        isOwnMessage: true,
-        showSender: true,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-      };
-
-      // Update local state immediately for the sender
-      setMessages((current) => [...current, message]);
-
-      await channel.send({
-        type: "broadcast",
-        event: EVENT_MESSAGE_TYPE,
-        payload: message,
-      });
-    },
-    [channel, isConnected, currentUser],
-  );
-
-  return { messages, sendMessage, isConnected };
-}
+  return { messages, isConnected, loadingMessagesError, isMessagesLoading };
+};

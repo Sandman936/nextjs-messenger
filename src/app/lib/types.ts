@@ -1,7 +1,15 @@
 //Интерфейсы чата
 
 export interface IMessage {
-  user: IUserInfo;
+  id: string;
+  sender_id: string;
+  created_at: string;
+  content: string;
+  is_read: boolean;
+}
+
+export interface IMessageComponent {
+  user: IUserInfo | null;
   text: string;
   isOwnMessage: boolean;
   showSender: boolean;
@@ -11,9 +19,9 @@ export interface IMessage {
 
 export interface IChat {
   id: string;
-  user_info: IUserProfile;
+  user_info: IUserInfo;
   last_message: ILastMessage | null;
-  new_messages: number;
+  unread_count: number;
 }
 
 interface ILastMessage {
@@ -23,20 +31,11 @@ interface ILastMessage {
   sender_id: string;
 }
 
-interface IUserInfo {
+export interface IUserInfo {
   id: string;
   first_name: string;
   last_name: string | null;
   avatar_url: string | null;
-}
-
-//Интерфейсы контактов
-
-export interface IContact {
-  uid: string;
-  first_name: string;
-  last_name: string | null;
-  avatar: string | null;
 }
 
 //Интерфейсы профиля

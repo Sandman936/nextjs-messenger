@@ -1,10 +1,10 @@
 import { Info, UserRoundPlus } from "lucide-react";
 import Image from "next/image";
-import { useAuth } from "@/app/contexts/auth-context";
+import { useCurentChat } from "@/app/contexts/current-chat-context";
 import Status from "../../shared/status/status";
 
 const ChatHeader = () => {
-  const { user: user_info, isLoading } = useAuth();
+  const {currentChatUserInfo: chosenUser} = useCurentChat();
 
   return (
     <div className="bg-background flex justify-between px-6 py-3 items-center border-b-2 border-(--border-light)">
@@ -12,16 +12,14 @@ const ChatHeader = () => {
         <div className="aspect-square">
           <Image
             className="rounded-[50%] aspect-square object-cover"
-            src={
-              user_info?.avatar_url ? user_info?.avatar_url : "./userAvatar.svg"
-            }
+            src={"./userAvatar.svg"}
             width={44}
             height={44}
             alt="Аватар пользователя"
           />
         </div>
         <div className="flex flex-col">
-          <h2 className="text-lg font-semibold">{!isLoading ? `${user_info?.first_name} ${user_info?.last_name ?? ''}`: 'Загрузка...'}</h2>
+          <h2 className="text-lg font-semibold">{`${chosenUser?.first_name} ${chosenUser?.last_name}`}</h2>
           <Status />
         </div>
       </div>

@@ -1,73 +1,47 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/app/contexts/auth-context";
+import { useState } from "react";
+import { sendMessage } from "@/app/lib/actions/chats";
 import { useChatScroll } from "@/app/lib/hooks/use-chat-scroll";
-import { useRealtimeChat } from "@/app/lib/hooks/use-realtime-chat";
-import type { IRealtimeChatProps } from "@/app/lib/types";
 import ChatInput from "./chat-input/chat-input";
 import ChatMessages from "./chat-messages/chat-messages";
 import ChatHeader from "./header/chat-header";
 
-/**
- * Realtime chat component
- * @param roomName - The name of the room to join. Each room is a unique chat.
- * @param username - The username of the user
- * @param onMessage - The callback function to handle the messages. Useful if you want to store the messages in a database.
- * @param messages - The messages to display in the chat. Useful if you want to display messages from a database.
- * @returns The chat component
- */
+interface IRealTimeChat {
+  id: string;
+}
 
-export const RealtimeChat = ({
-  roomName,
-  onMessage,
-  messages: initialMessages = [],
-}: IRealtimeChatProps) => {
+export const RealtimeChat = ({ id }: IRealTimeChat) => {
   const { containerRef, scrollToBottom } = useChatScroll();
-
-  const {
-    messages: realtimeMessages,
-    sendMessage,
-    isConnected,
-  } = useRealtimeChat({
-    roomName,
-  });
-
   const [chatInputValue, setChatInputValue] = useState<string>("");
 
-  // Merge realtime messages with initial messages
-  const allMessages = useMemo(() => {
-    const mergedMessages = [...initialMessages, ...realtimeMessages];
-    // Remove duplicates based on message id
-    const uniqueMessages = mergedMessages.filter(
-      (message, index, self) =>
-        index === self.findIndex((m) => m.id === message.id),
-    );
-    // Sort by creation date
-    const sortedMessages = uniqueMessages.sort((a, b) =>
-      a.createdAt.localeCompare(b.createdAt),
-    );
+  const handleSendMessage = async () => {
+  const text = chatInputValue.trim(); // ✅ Сохраняем значение ДО очистки
+  
+  if (!text) return; // ✅ Проверка на пустое сообщение
 
-    return sortedMessages;
-  }, [initialMessages, realtimeMessages]);
+  console.log('📤 Отправка:', { text, chat_id: id });
 
-  useEffect(() => {
-    if (onMessage) {
-      onMessage(allMessages);
+  setChatInputValue(""); // ✅ Очищаем поле
+
+  try {
+    const result = await sendMessage({ text, chat_id: id });
+    console.log('📤 Результат:', result);
+
+    if (!result) {
+      console.error("❌ Не удалось отправить сообщение!");
+      setChatInputValue(text); // ✅ Возвращаем текст при ошибке
     }
-  }, [allMessages, onMessage]);
-
-  const handleSendMessage = useCallback(() => {
-    if (!chatInputValue.trim() || !isConnected) return;
-
-    sendMessage(chatInputValue);
-    setChatInputValue("");
-  }, [chatInputValue, isConnected, sendMessage]);
+  } catch (error) {
+    console.error("❌ Ошибка отправки:", error);
+    setChatInputValue(text); // ✅ Возвращаем текст при ошибке
+  }
+};
 
   return (
     <section className="bg-white text-(--text-primary-color) flex flex-col grow justify-between h-full min-h-0">
       <ChatHeader />
-      <ChatMessages ref={containerRef} messages={allMessages} />
+      <ChatMessages ref={containerRef} chat_id={id} />
       <ChatInput
         value={chatInputValue}
         setValue={setChatInputValue}

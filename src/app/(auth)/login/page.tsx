@@ -42,14 +42,24 @@ export default function LoginPage() {
       }
 
       if (data.user) {
+        const {data: profileData, error: profileError} = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          setError("Ошибка получения профиля");
+          setLoading(false);
+          return;
+        }
+
         setUser({
-          id: data.user.id,
-          first_name: firstName.trim() ?? "Неизвестный пользователь",
-          last_name: lastName?.trim() || null,
-          hasSetName: true,
+          id: profileData.id,
+          first_name: profileData.first_name ?? "Неизвестный пользователь",
+          last_name: profileData.lastName || null,
           avatar_url: null,
-          created_at: data.user.created_at,
-          updated_at: data.user.updated_at,
         });
 
         setLoading(false);
@@ -61,22 +71,6 @@ export default function LoginPage() {
       setError("Произошла ошибка входа");
       setLoading(false);
     }
-    // try {
-    //   const formData = new FormData(e.currentTarget);
-    //   const first_name = formData.get("first_name") as string;
-    //   const last_name = formData.get("last_name") as string;
-
-    //   const { error } = await signInWithName({
-    //     firstName: first_name,
-    //     lastName: last_name,
-    //   });
-    //   refreshUser();
-    //   setError(error);
-    // } catch (error) {
-    //   console.error(error);
-    // } finally {
-    //   setLoading(false);
-    // }
   };
 
   return (

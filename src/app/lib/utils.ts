@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { IMessage } from "./types";
+import type { IMessage, IMessageComponent } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,13 +29,12 @@ export const formatErrors = (error: string) => {
   }
 };
 
-//TO DO: Поменять потом проверку имени на проверку id пользователя
-export const showUsername = (
-  currentMessage: IMessage,
-  prevMessage: IMessage | null,
+export const showName = (
+  currentMessageSender: string,
+  prevMessageSender: string | undefined,
 ) => {
   return (
-    !prevMessage ||
-    prevMessage.user.first_name !== currentMessage.user.first_name
+    !prevMessageSender ||
+    prevMessageSender !== currentMessageSender
   );
 };
