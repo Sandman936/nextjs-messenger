@@ -26,7 +26,9 @@ const Message = React.memo(
             >
               <span className={"font-medium"}>
                 {user
-                  ? `${user.first_name} ${user.last_name}`
+                  ? user.last_name
+                    ? `${user.first_name} ${user.last_name}`
+                    : user.first_name
                   : "Неизвестный пользователь"}
               </span>
               <span className="text-sm">
