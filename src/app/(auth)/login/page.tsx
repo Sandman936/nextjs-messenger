@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const { setUser } = useAuth();
+  const { refreshUser } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -42,26 +42,7 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        const {data: profileData, error: profileError} = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-        
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          setError("Ошибка получения профиля");
-          setLoading(false);
-          return;
-        }
-
-        setUser({
-          id: profileData.id,
-          first_name: profileData.first_name ?? "Неизвестный пользователь",
-          last_name: profileData.lastName || null,
-          avatar_url: null,
-        });
-
+        await refreshUser();
         setLoading(false);
         router.push("/");
         router.refresh();

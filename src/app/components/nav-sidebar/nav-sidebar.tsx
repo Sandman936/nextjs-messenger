@@ -2,22 +2,24 @@
 
 import { LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/app/lib/supabase/client";
+import { useAuth } from "@/app/contexts/auth-context";
 import linksArray from "./links.data";
 import NavLinks from "./nav-links/nav-links";
 import UserAvatar from "./user-avatar/user-avatar";
 
 const NavSidebar = () => {
+  const { signOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-
-    await supabase.auth.signOut();
-
-    router.push("/login");
-    router.refresh();
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to sign out:", error);
+    }
   };
 
   return (
@@ -32,7 +34,7 @@ const NavSidebar = () => {
       <button
         type="button"
         onClick={() => {
-          handleLogout();
+          handleSignOut();
         }}
         className="active:text-(--icon-color-active) active:bg-(--border-dark) cursor-pointer duration-300 easy-in-out transition-colors hover:text-(--icon-color-light) hover:bg-(--dark-purple-accent) p-5"
       >

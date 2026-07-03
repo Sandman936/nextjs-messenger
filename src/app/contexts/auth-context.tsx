@@ -16,6 +16,8 @@ interface IAuthContext {
   user: IUserInfo | null;
   setUser: Dispatch<SetStateAction<IUserInfo | null>>;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
@@ -28,10 +30,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUser = async (userId: string) => {
     try {
-      const {
-        data: profile,
-        error,
-      } = await supabase.from("profiles").select("*").eq("id", userId).single();
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
       if (error) {
         console.error("Error loading user:", error);
@@ -42,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userProfile: IUserInfo = {
         id: profile.id,
         first_name: profile.first_name,
-        last_name: profile.last_name,
+        last_name: profile.last_name ?? "",
         avatar_url: profile.avatar_url,
       };
 
@@ -50,22 +53,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error loading user:", error);
       setUser(null);
-    };
+    }
   };
 
-  useEffect(() => { 
+  const refreshUser = async () => {
+    setIsLoading(true);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.user) {
+      await fetchUser(session.user.id);
+    } else {
+      setUser(null);
+    }
+
+    setIsLoading(false);
+  };
+
+  const signOut = async () => {
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("Error signing out:", error);
+        throw error;
+      }
+
+      setUser(null);
+    } catch (error) {
+      console.error("Sign out error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     const checkSession = async () => {
       setIsLoading(true);
 
-      const { data: {session}} = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (session?.user) {
         await fetchUser(session.user.id);
       }
 
       setIsLoading(false);
-    }
-  
+    };
+
     checkSession();
 
     const {
@@ -83,10 +123,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, setUser, isLoading, refreshUser, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );
