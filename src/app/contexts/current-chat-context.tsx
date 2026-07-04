@@ -46,7 +46,7 @@ export const CurrentChatProvider: React.FC<{ children: React.ReactNode }> = ({
       const errorMessage =
         err instanceof Error ? err.message : "Не удалось открыть чат";
       setError(errorMessage);
-      console.error("❌ Ошибка:", err);
+      console.error("Ошибка:", err);
     } finally {
       setIsLoading(false);
     }

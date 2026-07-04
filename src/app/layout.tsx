@@ -27,9 +27,9 @@ export default function RootLayout({
       <body
         className={`${ptSans.variable} antialiased grid place-items-center`}
       >
-        <AuthProvider>
-          <CurrentChatProvider>{children}</CurrentChatProvider>
-        </AuthProvider>
+        <CurrentChatProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </CurrentChatProvider>
       </body>
     </html>
   );

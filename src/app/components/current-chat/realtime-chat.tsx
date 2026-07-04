@@ -16,25 +16,22 @@ export const RealtimeChat = ({ id }: IRealTimeChat) => {
   const [chatInputValue, setChatInputValue] = useState<string>("");
 
   const handleSendMessage = async () => {
-  const text = chatInputValue.trim(); // ✅ Сохраняем значение ДО очистки
+  const text = chatInputValue.trim();
   
-  if (!text) return; // ✅ Проверка на пустое сообщение
+  if (!text) return;
 
-  console.log('📤 Отправка:', { text, chat_id: id });
-
-  setChatInputValue(""); // ✅ Очищаем поле
+  setChatInputValue("");
 
   try {
     const result = await sendMessage({ text, chat_id: id });
-    console.log('📤 Результат:', result);
 
     if (!result) {
-      console.error("❌ Не удалось отправить сообщение!");
-      setChatInputValue(text); // ✅ Возвращаем текст при ошибке
+      console.error("Не удалось отправить сообщение!");
+      setChatInputValue(text);
     }
   } catch (error) {
-    console.error("❌ Ошибка отправки:", error);
-    setChatInputValue(text); // ✅ Возвращаем текст при ошибке
+    console.error(" Ошибка отправки:", error);
+    setChatInputValue(text);
   }
 };
 

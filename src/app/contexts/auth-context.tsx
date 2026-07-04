@@ -11,6 +11,7 @@ import {
 } from "react";
 import { createClient } from "../lib/supabase/client";
 import type { IUserInfo } from "../lib/types";
+import { useCurentChat } from "./current-chat-context";
 
 interface IAuthContext {
   user: IUserInfo | null;
@@ -25,6 +26,7 @@ export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<IUserInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { clearCurrentChat } = useCurentChat();
 
   const supabase = createClient();
 
@@ -79,13 +81,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        console.error("Error signing out:", error);
+        console.error("Ошибка выхода из профиля:", error);
         throw error;
       }
 
       setUser(null);
+      clearCurrentChat();
     } catch (error) {
-      console.error("Sign out error:", error);
+      console.error("Ошибка выхода из профиля:", error);
     } finally {
       setIsLoading(false);
     }
