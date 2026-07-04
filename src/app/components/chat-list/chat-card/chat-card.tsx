@@ -24,7 +24,7 @@ const ChatCard = ({ card_data }: IProps) => {
       onClick={() => openChat(card_data.user_info, card_data.id)}
     >
       <div className="grid grid-cols-5">
-        <div className="flex self-center size-11 mr-2">
+        <div className="flex self-center size-11">
           <Image
             className="rounded-[50%] aspect-square"
             src={card_data.user_info.avatar_url ?? "./userAvatar.svg"}
@@ -34,7 +34,11 @@ const ChatCard = ({ card_data }: IProps) => {
           />
         </div>
         <div className="col-span-4 self-center w-full">
-          <h2 className="text-lg truncate">{`${card_data.user_info.first_name} ${card_data.user_info.last_name}`}</h2>
+          <h2 className="text-lg truncate">
+            {card_data.user_info.last_name
+              ? `${card_data.user_info.first_name} ${card_data.user_info.last_name}`
+              : card_data.user_info.first_name}
+          </h2>
           <p className="text-base text-(--text-purple-color) truncate">
             {card_data.last_message?.content ?? "Сообщения отсутствуют"}
           </p>

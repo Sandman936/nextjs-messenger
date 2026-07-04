@@ -4,7 +4,7 @@ import { useCurrentChat } from "@/app/contexts/current-chat-context";
 import Status from "../../shared/status/status";
 
 const ChatHeader = () => {
-  const {currentChatUserInfo: chosenUser} = useCurrentChat();
+  const { currentChatUserInfo: chosenUser } = useCurrentChat();
 
   return (
     <div className="bg-background flex justify-between px-6 py-3 items-center border-b-2 border-(--border-light)">
@@ -19,7 +19,11 @@ const ChatHeader = () => {
           />
         </div>
         <div className="flex flex-col">
-          <h2 className="text-lg font-semibold">{`${chosenUser?.first_name} ${chosenUser?.last_name}`}</h2>
+          <h2 className="text-lg font-semibold">
+            {chosenUser?.last_name
+              ? `${chosenUser?.first_name} ${chosenUser?.last_name}`
+              : chosenUser?.first_name}
+          </h2>
           <Status />
         </div>
       </div>
