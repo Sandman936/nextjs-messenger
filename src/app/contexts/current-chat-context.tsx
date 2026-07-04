@@ -24,33 +24,36 @@ export const CurrentChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const openChat = useCallback(async (chosenUser: IUserInfo, id?: string) => {
-    if (currentChatUserInfo?.id === chosenUser.id) {
-      return;
-    }
+  const openChat = useCallback(
+    async (chosenUser: IUserInfo, id?: string) => {
+      if (currentChatUserInfo?.id === chosenUser.id) {
+        return;
+      }
 
-    if (id) {
-      setCurrentChatId(id);
-      setCurrentChatUserInfo(chosenUser);
-      return;
-    }
+      if (id) {
+        setCurrentChatId(id);
+        setCurrentChatUserInfo(chosenUser);
+        return;
+      }
 
-    setIsLoading(true);
-    setError(null);
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const chatId = await findOrCreateChat(chosenUser.id);
-      setCurrentChatId(chatId);
-      setCurrentChatUserInfo(chosenUser);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Не удалось открыть чат";
-      setError(errorMessage);
-      console.error("Ошибка:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentChatUserInfo?.id]);
+      try {
+        const chatId = await findOrCreateChat(chosenUser.id);
+        setCurrentChatId(chatId);
+        setCurrentChatUserInfo(chosenUser);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Не удалось открыть чат";
+        setError(errorMessage);
+        console.error("Ошибка:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [currentChatUserInfo?.id],
+  );
 
   const clearCurrentChat = useCallback(() => {
     setCurrentChatId(null);
@@ -73,7 +76,7 @@ export const CurrentChatProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useCurentChat = () => {
+export const useCurrentChat = () => {
   const context = useContext(CurrentChatContext);
   if (!context) {
     throw new Error("useChat must be used within ChatProvider");

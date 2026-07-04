@@ -1,21 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "@/app/contexts/auth-context";
 import { getChatMessages } from "../actions/chats";
-import { createClient } from "../supabase/client";
+import { supabase } from "../supabase/client";
 import type { IMessage } from "../types";
 
-export const useRealtimeChat = (chatId: string) => {
-  const supabase = createClient();
+export const useRealtimeChatMessages = (chatId: string) => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-
   const [isMessagesLoading, setIsMessagesLoading] = useState(true);
   const [loadingMessagesError, setLoadingMessagesError] = useState<string>("");
 
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const { user: currentUser } = useAuth();
+  const messagesChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(
+    null,
+  );
+  const isMounted = useRef(true);
 
   const loadMessages = useCallback(async () => {
     if (!chatId) return;
@@ -26,19 +25,27 @@ export const useRealtimeChat = (chatId: string) => {
 
       const loadedMessages = await getChatMessages(chatId);
 
-      setMessages(loadedMessages);
+      if (isMounted.current) {
+        setMessages(loadedMessages);
+        setLoadingMessagesError("");
+      }
     } catch (err) {
-      setLoadingMessagesError("Не удалось загрузить сообщения");
-      console.error(err);
+      if (isMounted.current) {
+        setLoadingMessagesError(
+          err instanceof Error ? err.message : "Ошибка загрузки сообщений",
+        );
+      }
     } finally {
-      setIsMessagesLoading(false);
+      if (isMounted.current) {
+        setIsMessagesLoading(false);
+      }
     }
   }, [chatId]);
 
   useEffect(() => {
-    if (!chatId || !currentUser) return;
+    isMounted.current = true;
 
-    console.log(`🔗 Подключаемся к чату: ${chatId}`);
+    if (!chatId) return;
 
     const newChannel = supabase
       .channel(`chat:${chatId}:changes`)
@@ -51,45 +58,38 @@ export const useRealtimeChat = (chatId: string) => {
           filter: `chat_id=eq.${chatId}`,
         },
         (payload) => {
-          console.log("📨 Новое сообщение (postgres_changes):", payload);
-
           const newMessage = payload.new as IMessage;
           setMessages((current) => {
-            const exists = current.some((msg) => msg.id === newMessage.id);
-            if (exists) return current;
+            if (current.some((msg) => msg.id === newMessage.id)) return current;
             return [...current, newMessage];
           });
         },
       )
       .subscribe((status) => {
-        console.log(`📡 Статус канала chat:${chatId}:changes:`, status);
-
         if (status === "SUBSCRIBED") {
-          console.log("✅ Подписка активна");
           setIsConnected(true);
           setLoadingMessagesError("");
           loadMessages();
         } else if (status === "CHANNEL_ERROR") {
-          console.error("❌ Ошибка канала");
           setIsConnected(false);
-          setLoadingMessagesError("Ошибка подключения к чату");
-        } else {
-          console.log(`📡 Другой статус: ${status}`);
+          setLoadingMessagesError("Ошибка получения сообщений");
+        } else if (status === "CLOSED") {
           setIsConnected(false);
+          setLoadingMessagesError("Соединение прервано");
         }
       });
 
-    channelRef.current = newChannel;
+    messagesChannelRef.current = newChannel;
 
     return () => {
-      console.log(`🔌 Отключаемся от чата: ${chatId}`);
-      if (channelRef.current) {
+      isMounted.current = false;
+      if (messagesChannelRef.current) {
         supabase.removeChannel(newChannel);
-        channelRef.current = null;
+        messagesChannelRef.current = null;
       }
       setIsConnected(false);
     };
-  }, [chatId, currentUser, loadMessages, supabase]);
+  }, [chatId, loadMessages]);
 
   return { messages, isConnected, loadingMessagesError, isMessagesLoading };
 };

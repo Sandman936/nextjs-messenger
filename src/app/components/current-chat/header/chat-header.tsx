@@ -1,10 +1,10 @@
 import { Info, UserRoundPlus } from "lucide-react";
 import Image from "next/image";
-import { useCurentChat } from "@/app/contexts/current-chat-context";
+import { useCurrentChat } from "@/app/contexts/current-chat-context";
 import Status from "../../shared/status/status";
 
 const ChatHeader = () => {
-  const {currentChatUserInfo: chosenUser} = useCurentChat();
+  const {currentChatUserInfo: chosenUser} = useCurrentChat();
 
   return (
     <div className="bg-background flex justify-between px-6 py-3 items-center border-b-2 border-(--border-light)">

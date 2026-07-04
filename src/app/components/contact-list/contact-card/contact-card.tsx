@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useCurentChat } from "@/app/contexts/current-chat-context";
+import { useCurrentChat } from "@/app/contexts/current-chat-context";
 import type { IUserInfo } from "@/app/lib/types";
 import { cn } from "@/app/lib/utils";
 
@@ -8,7 +8,7 @@ interface IProps {
 }
 
 const ContactCard = ({ card_data }: IProps) => {
-  const { openChat, currentChatId } = useCurentChat();
+  const { openChat, currentChatId } = useCurrentChat();
 
   const isActive: boolean = currentChatId === card_data.id;
 

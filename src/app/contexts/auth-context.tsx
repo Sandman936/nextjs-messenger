@@ -5,13 +5,14 @@ import {
   type Dispatch,
   type ReactNode,
   type SetStateAction,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
-import { createClient } from "../lib/supabase/client";
+import { supabase } from "../lib/supabase/client";
 import type { IUserInfo } from "../lib/types";
-import { useCurentChat } from "./current-chat-context";
+import { useCurrentChat } from "./current-chat-context";
 
 interface IAuthContext {
   user: IUserInfo | null;
@@ -26,11 +27,9 @@ export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<IUserInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { clearCurrentChat } = useCurentChat();
+  const { clearCurrentChat } = useCurrentChat();
 
-  const supabase = createClient();
-
-  const fetchUser = async (userId: string) => {
+  const fetchUser = useCallback(async (userId: string) => {
     try {
       const { data: profile, error } = await supabase
         .from("profiles")
@@ -56,9 +55,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error loading user:", error);
       setUser(null);
     }
-  };
+  }, []);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     setIsLoading(true);
 
     const {
@@ -72,9 +71,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setIsLoading(false);
-  };
+  }, [fetchUser]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     setIsLoading(true);
 
     try {
@@ -92,24 +91,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [clearCurrentChat]);
 
   useEffect(() => {
-    const checkSession = async () => {
-      setIsLoading(true);
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.user) {
-        await fetchUser(session.user.id);
-      }
-
-      setIsLoading(false);
-    };
-
-    checkSession();
+    refreshUser();
 
     const {
       data: { subscription },
@@ -119,14 +104,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setUser(null);
       }
-
-      setIsLoading(false);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [refreshUser, fetchUser]);
 
   return (
     <AuthContext.Provider

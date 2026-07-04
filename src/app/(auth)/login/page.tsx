@@ -5,7 +5,7 @@ import { type SyntheticEvent, useState } from "react";
 import SubmitButton from "@/app/components/ui/buttons/submit-button";
 import Field from "@/app/components/ui/field/field";
 import { useAuth } from "@/app/contexts/auth-context";
-import { createClient } from "@/app/lib/supabase/client";
+import { supabase } from "@/app/lib/supabase/client";
 
 export default function LoginPage() {
   const [firstName, setFirstName] = useState<string>("");
@@ -20,8 +20,6 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
-    const supabase = createClient();
 
     try {
       const { data, error: authError } = await supabase.auth.signInAnonymously({

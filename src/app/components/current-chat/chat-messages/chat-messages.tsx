@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useAuth } from "@/app/contexts/auth-context";
-import { useCurentChat } from "@/app/contexts/current-chat-context";
-import { useRealtimeChat } from "@/app/lib/hooks/use-realtime-chat";
+import { useCurrentChat } from "@/app/contexts/current-chat-context";
+import { useRealtimeChatMessages } from "@/app/lib/hooks/use-realtime-chat-messages";
 import MessagesList from "./chat-messages-list";
 import EmptyStateMessages from "./empty-messages";
 import ErrorStateMessages from "./error-messages";
@@ -16,12 +16,12 @@ interface IChatMessagesProps {
 const ChatMessages = React.forwardRef<HTMLDivElement, IChatMessagesProps>(
   ({ chat_id }, ref) => {
     const { user: currentUser } = useAuth();
-    const { currentChatUserInfo } = useCurentChat();
+    const { currentChatUserInfo } = useCurrentChat();
     const {
       messages,
       isMessagesLoading: isLoading,
       loadingMessagesError: error,
-    } = useRealtimeChat(chat_id);
+    } = useRealtimeChatMessages(chat_id);
 
     if (isLoading) {
       return (

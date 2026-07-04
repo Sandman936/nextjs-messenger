@@ -1,11 +1,11 @@
 "use client";
 
-import { useCurentChat } from "@/app/contexts/current-chat-context";
+import { useCurrentChat } from "@/app/contexts/current-chat-context";
 
 import { RealtimeChat } from "./realtime-chat";
 
 const CurrentChat = () => {
-  const { currentChatId } = useCurentChat();
+  const { currentChatId } = useCurrentChat();
 
   return currentChatId ? (
     <RealtimeChat id={currentChatId} />

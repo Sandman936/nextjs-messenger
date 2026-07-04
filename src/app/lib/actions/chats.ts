@@ -23,6 +23,24 @@ export const getChatsList = async (): Promise<IChat[]> => {
   }
 };
 
+//Получаем чат по его id
+
+export async function getChatById(chat_id: string): Promise<IChat | null> {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .rpc('get_chat_by_id', { chat_id_param: chat_id });
+
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching chat:', error);
+    return null;
+  }
+}
+
 //Находим или создаем новый чат
 
 export const findOrCreateChat = async (
@@ -42,19 +60,7 @@ export const findOrCreateChat = async (
   return data;
 };
 
-export async function getChatById(chatId: string): Promise<IChat> {
-  const supabase = await createClient();
-
-  const { data: chat, error: chatError } = await supabase
-    .from("chats")
-    .select("*")
-    .eq("id", chatId)
-    .single();
-
-  if (chatError) throw new Error("Чат не найден");
-
-  return chat;
-}
+//Получаем сообщения из чата
 
 export const getChatMessages = async (chat_id: string): Promise<IMessage[]> => {
   const supabase = await createClient();

@@ -24,6 +24,11 @@ export interface IChat {
   unread_count: number;
 }
 
+export interface IChatPayload {
+  id: string;
+  created_at: string;
+}
+
 interface ILastMessage {
   id: number;
   content: string;
@@ -48,18 +53,6 @@ export interface IUserProfile {
   hasSetName: boolean;
   created_at: string;
   updated_at: string | undefined;
-}
-
-//Интерфейс комнаты
-
-export interface IRealtimeChatProps {
-  roomName: string;
-  onMessage?: (messages: IMessage[]) => void;
-  messages?: IMessage[];
-}
-
-export interface IUseRealtimeChatProps {
-  roomName: string;
 }
 
 //Интерфейс аутентификации
