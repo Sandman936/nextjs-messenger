@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { type SyntheticEvent, useState } from "react";
 import SubmitButton from "@/app/components/ui/buttons/submit-button";
 import Field from "@/app/components/ui/field/field";
-import { useAuth } from "@/app/contexts/auth-context";
 import { supabase } from "@/app/lib/supabase/client";
 
 export default function LoginPage() {
@@ -13,7 +12,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const { refreshUser } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -40,7 +38,6 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        await refreshUser();
         setLoading(false);
         router.push("/");
         router.refresh();

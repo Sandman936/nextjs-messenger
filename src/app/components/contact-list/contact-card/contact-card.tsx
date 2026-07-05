@@ -34,7 +34,11 @@ const ContactCard = ({ card_data }: IProps) => {
           />
         </div>
         <div className="flex flex-col self-center">
-          <h2 className="text-lg">{`${card_data.first_name} ${card_data.last_name}`}</h2>
+          <h2 className="text-lg">
+            {card_data.last_name
+              ? `${card_data.first_name} ${card_data.last_name}`
+              : card_data.first_name}
+          </h2>
           <p className="text-base text-(--text-purple-color)">В сети</p>
         </div>
       </div>

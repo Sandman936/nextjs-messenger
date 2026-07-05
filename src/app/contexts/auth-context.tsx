@@ -8,6 +8,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { supabase } from "../lib/supabase/client";
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<IUserInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { clearCurrentChat } = useCurrentChat();
+  const isRefreshing = useRef(false);
 
   const fetchUser = useCallback(async (userId: string) => {
     try {
@@ -58,47 +60,91 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const refreshUser = useCallback(async () => {
-    setIsLoading(true);
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session?.user) {
-      await fetchUser(session.user.id);
-    } else {
-      setUser(null);
+    if (isRefreshing.current) {
+      return;
     }
 
-    setIsLoading(false);
-  }, [fetchUser]);
+    isRefreshing.current = true;
+    setIsLoading(true);
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        setUser(null);
+        return;
+      }
+
+      if (session?.user) {
+        if (user?.id === session.user.id) {
+          setIsLoading(false);
+          return;
+        }
+        await fetchUser(session.user.id);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Refresh error:", error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+      isRefreshing.current = false;
+    }
+  }, [fetchUser, user?.id]);
 
   const signOut = useCallback(async () => {
-    setIsLoading(true);
+    setUser(null);
+    clearCurrentChat();
 
     try {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
         console.error("Ошибка выхода из профиля:", error);
-        throw error;
+        return;
       }
-
-      setUser(null);
-      clearCurrentChat();
     } catch (error) {
       console.error("Ошибка выхода из профиля:", error);
-    } finally {
-      setIsLoading(false);
     }
   }, [clearCurrentChat]);
 
   useEffect(() => {
-    refreshUser();
+    let isSubscribed = true;
+    let isInitialized = false;
+
+    const initializeAuth = async () => {
+      if (isInitialized) return;
+      isInitialized = true;
+
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user && isSubscribed) {
+          await fetchUser(session.user.id);
+        } else if (isSubscribed) {
+          setUser(null);
+        }
+      } finally {
+        if (isSubscribed) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isSubscribed) return;
+
       if (session?.user) {
         await fetchUser(session.user.id);
       } else {
@@ -107,9 +153,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
+      isSubscribed = false;
       subscription.unsubscribe();
     };
-  }, [refreshUser, fetchUser]);
+  }, [fetchUser]);
 
   return (
     <AuthContext.Provider

@@ -8,9 +8,9 @@ import NavLinks from "./nav-links/nav-links";
 import UserAvatar from "./user-avatar/user-avatar";
 
 const NavSidebar = () => {
-  const { signOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     try {
@@ -18,7 +18,7 @@ const NavSidebar = () => {
       router.push("/login");
       router.refresh();
     } catch (error) {
-      console.error("Failed to sign out:", error);
+      console.error("Ошибка выхода:", error);
     }
   };
 
@@ -33,9 +33,7 @@ const NavSidebar = () => {
       </div>
       <button
         type="button"
-        onClick={() => {
-          handleSignOut();
-        }}
+        onClick={handleSignOut}
         className="active:text-(--icon-color-active) active:bg-(--border-dark) cursor-pointer duration-300 easy-in-out transition-colors hover:text-(--icon-color-light) hover:bg-(--dark-purple-accent) p-5"
       >
         <LogOut size={30} />

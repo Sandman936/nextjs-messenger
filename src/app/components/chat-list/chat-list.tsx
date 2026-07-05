@@ -7,10 +7,12 @@ interface IChatListProps {
 }
 
 const ChatList = ({ chatsArray }: IChatListProps) => {
+  const visibleChats = chatsArray.filter(chat => chat.last_message !== null);
+
   return (
     <ul className="h-full">
-      {chatsArray.length ? (
-        chatsArray.map((chat) => <ChatCard key={chat.id} card_data={chat} />)
+      {visibleChats.length ? (
+        visibleChats.map((chat) => <ChatCard key={chat.id} card_data={chat} />)
       ) : (
         <div className="flex flex-col items-center gap-5 px-5">
           <MessageCircleOff size={96} color="var(--accent-color)" />

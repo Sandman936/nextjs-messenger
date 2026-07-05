@@ -43,17 +43,18 @@ export const useRealtimeChats = (userId: string) => {
   }, [userId]);
 
   const sortChats = useCallback((chatsToSort: IChat[]): IChat[] => {
-    const chatsWithMessages = chatsToSort.filter(
-      (chat) => chat.last_message !== null,
-    );
+    return [...chatsToSort].sort((a, b) => {
+      if (a.last_message && !b.last_message) return -1;
+      if (!a.last_message && b.last_message) return 1;
 
-    return chatsWithMessages.sort((a, b) => {
-      return (
-        // biome-ignore lint/style/noNonNullAssertion: last_message не может быть null
-        new Date(b.last_message!.created_at).getTime() -
-        // biome-ignore lint/style/noNonNullAssertion: last_message не может быть null
-        new Date(a.last_message!.created_at).getTime()
-      );
+      if (a.last_message && b.last_message) {
+        return (
+          new Date(b.last_message.created_at).getTime() -
+          new Date(a.last_message.created_at).getTime()
+        );
+      }
+
+      return 0;
     });
   }, []);
 
@@ -113,7 +114,6 @@ export const useRealtimeChats = (userId: string) => {
           filter: `user1_id=eq.${userId}`,
         },
         (payload) => {
-          console.log(payload)
           addNewChat(payload.new.id);
         },
       )
@@ -126,7 +126,6 @@ export const useRealtimeChats = (userId: string) => {
           filter: `user2_id=eq.${userId}`,
         },
         (payload) => {
-          console.log(payload)
           addNewChat(payload.new.id);
         },
       )
@@ -139,7 +138,6 @@ export const useRealtimeChats = (userId: string) => {
           filter: `user1_id=eq.${userId}`,
         },
         (payload) => {
-          console.log(payload)
           updateChat(payload.new);
         },
       )
@@ -152,7 +150,6 @@ export const useRealtimeChats = (userId: string) => {
           filter: `user2_id=eq.${userId}`,
         },
         (payload) => {
-          console.log(payload)
           updateChat(payload.new);
         },
       )

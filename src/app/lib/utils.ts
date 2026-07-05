@@ -22,7 +22,6 @@ export const formatErrors = (error: string) => {
     case "Invalid login credentials":
       return "Неверное имя пользователя или пароль";
     case "Email not confirmed":
-      console.log("Email not confirmed");
       return "E-mail не подтвержден";
     default:
       return error;

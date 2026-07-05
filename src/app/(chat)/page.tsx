@@ -24,7 +24,7 @@ export default function ChatsPage() {
   if (loadingChatsError) {
     return (
       <div className="bg-(--primary-purple) border-r-2 border-(--light-purple) flex flex-col gap-6 h-full relative">
-        <div className="flex flex-col items-center gap-5 px-5">
+        <div className="flex flex-col items-center gap-5 px-5 py-10">
           <MessageCircleX size={96} color="var(--accent-color)" />
           <h2 className="text-xl text-center font-semibold">
             Не удалось загрузить чаты

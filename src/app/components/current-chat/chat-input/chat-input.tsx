@@ -14,7 +14,6 @@ const ChatInput = ({ value, setValue, handleSendMessage }: IProps) => {
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && isSendButtonActive && !e.shiftKey) {
       e.preventDefault();
-      console.log("Enter был нажат!");
       handleSendMessage();
     }
 
